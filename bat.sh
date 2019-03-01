@@ -1,8 +1,6 @@
 #!/bin/bash -e
 
-bisection_config=$1
-
-config_get_section() {
+bat_get_section() {
   section=$1
   lin=$(grep -n "^\[${section}\]$" "${bisection_config}" | cut -d: -f1)
   if [ -n "${lin}" ]; then
@@ -32,6 +30,13 @@ function bat_error() {
   exit 125
 }
 trap bat_error INT TERM
+
+function bat_run_stage() {
+  stage=$1
+  echo "BAT Bisection: Configuration [${bisection_config}]; Stage: ${stage}"
+  # FIXME: Trap exit status
+  eval "$(bat_get_section ${stage})"
+}
 
 function ext42simg() {
   sinext=${1%.ext4.gz}
@@ -63,32 +68,75 @@ function lkft_env() {
   ) -i
 }
 
-echo
-echo "======================================================================================================"
+function usage() {
+  echo "Usage:"
+  echo "  $0 bisection.conf"
+  echo "will run the whole bisection. Or"
+  echo "  $0 --stage bisection.conf"
+  echo "to run just one stage of the bisection."
+  echo
+  echo "Stages can be:"
+  echo "* build"
+  echo "* publish"
+  echo "* test"
+  echo "* discriminator"
+  echo "and any other custom stage defined in the bisection configuration."
+  exit 0
+}
+
+BAT_DEFAULT_STAGES=(build test publish discriminator)
+
+[ $# -eq 0 ] && usage
+
+if [ $# -eq 1 -a -e "$1" ]; then
+  # Managed mode
+  export bisection_config=$(readlink -e $1)
+  echo "BAT Bisection: Configuration [${bisection_config}]"
+  # Read bisection parameters
+  eval "$(bat_get_section bat)"
+  echo "BAT Bisection: OLD: [${BISECTION_OLD}]"
+  echo "BAT Bisection: NEW: [${BISECTION_NEW}]"
+  git bisect start
+  git bisect old ${BISECTION_OLD}
+  git bisect new ${BISECTION_NEW}
+  git bisect run $(readlink -e $0) --all "${bisection_config}"
+  $(readlink -e $0) --all "${bisection_config}"
+
+  echo "BAT Bisection: Done"
+  exit 0
+fi
+
+declare -a stages_to_run
+for arg in $@; do
+  if [ "${arg:0:2}" = "--" ]; then
+    stage="${arg:2}"
+    stages_to_run+=(${stage})
+  else
+    bisection_config="${arg}"
+  fi
+done
+
+if [ "${stages_to_run[0]}" = "all" ]; then
+  if [[ ! -v BISECTION_STAGES ]]; then
+    stages_to_run=("${BAT_DEFAULT_STAGES[@]}")
+  else
+    stages_to_run=("${BISECTION_STAGES[@]}")
+  fi
+fi
+
+if ! git status > /dev/null 2>&1; then
+  echo "ERROR: Not a Git repository, can't bisect."
+  bat_error
+fi
 SRCREV=$(git rev-parse HEAD)
-if [ -n "${SRCREV}" ]; then
+if [ -z "${SRCREV}" ]; then
   echo "ERROR: Could not determine Git revision"
   bat_error
 fi
 export SRCREV
 export SHORT_SRCREV=${SRCREV:0:10}
 
-#git status
 
-# Build
-eval "$(config_get_section build)"
-
-# Publish images
-eval "$(config_get_section publish)"
-
-# Create LAVA job
-rm -f job.yaml
-eval "cat << EOF
-$(cat <(config_get_section lavajob))
-" > job.yaml 2> /dev/null
-
-# Submit and wait for completion of LAVA job
-eval "$(config_get_section test)"
-
-# Determine fail or pass
-eval "$(config_get_section discriminator)"
+for st in ${stages_to_run[@]}; do
+  bat_run_stage ${st}
+done
