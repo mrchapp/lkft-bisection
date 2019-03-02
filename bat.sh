@@ -34,6 +34,9 @@ trap bat_error INT TERM
 function bat_run_stage() {
   stage=$1
   echo "BAT Bisection: Configuration [${bisection_config}]; Stage: ${stage}"
+  set -a
+  source <(bat_get_section bat)
+  set +a
   # FIXME: Trap exit status
   eval "$(bat_get_section ${stage})"
 }
