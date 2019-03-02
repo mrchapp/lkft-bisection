@@ -84,7 +84,7 @@ function usage() {
   exit 0
 }
 
-BAT_DEFAULT_STAGES=(build test publish discriminator)
+BAT_DEFAULT_STAGES=(build publish test discriminator)
 
 [ $# -eq 0 ] && usage
 
