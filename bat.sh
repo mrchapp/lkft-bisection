@@ -44,13 +44,13 @@ function bat_git_status() {
 }
 
 function bat_old() {
-  trap '' EXIT
+  trap - EXIT
   echo "BAT BISECTION OLD: This iteration (kernel rev ${SRCREV}) presents old behavior."
   exit 0
 }
 
 function bat_new() {
-  trap '' EXIT
+  trap - EXIT
   echo "BAT BISECTION NEW: This iteration (kernel rev ${SRCREV}) presents new behavior."
   exit 1
 }
@@ -59,8 +59,6 @@ function bat_error() {
   echo "BAT BISECTION ERROR: Script error, can't continue testing"
   exit 125
 }
-trap bat_error INT TERM EXIT
-
 function bat_run_stage() {
   stage=$1
   [ "$(bat_section_exists "${stage}")" = "0" ] && return
@@ -92,6 +90,9 @@ BAT_DEFAULT_STAGES=(build publish test discriminator)
 
 [ $# -eq 0 ] && usage
 
+# Trap unexpected exits
+trap bat_error INT TERM EXIT
+
 if [ $# -eq 1 -a -e "$1" ]; then
   # Managed mode
   export bisection_config=$(readlink -e $1)
@@ -106,7 +107,7 @@ if [ $# -eq 1 -a -e "$1" ]; then
   git bisect run $(readlink -e $0) --all "${bisection_config}"
 
   echo "BAT Bisection: Done"
-  trap '' INT TERM EXIT
+  trap - INT TERM EXIT
   exit 0
 fi
 
