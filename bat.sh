@@ -72,14 +72,6 @@ function bat_run_stage() {
   eval "$(bat_get_section ${stage})"
 }
 
-function ext42simg() {
-  sinext=${1%.ext4.gz}
-  pigz -k -d "$1"
-  ext2simg -v "${sinext}.ext4" "${sinext}.img"
-  pigz -9 "${sinext}.img"
-  rm "${sinext}.ext4"
-}
-
 function usage() {
   echo "Usage:"
   echo "  $0 bisection.conf"
