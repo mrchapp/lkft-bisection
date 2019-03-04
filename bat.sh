@@ -80,28 +80,6 @@ function ext42simg() {
   rm "${sinext}.ext4"
 }
 
-function lkft_env() {
-  BUILD_DIR=build-${MACHINE}
-
-  COLOR_ON="\\[\\e[1;37;44m\\]"
-  COLOR_OFF="\\[\\e[0m\\]"
-  export NPS1="${COLOR_ON}[lkft:${MACHINE}]${COLOR_OFF} \\u\\[\\]@\\[\\]\\h\\[\\]:\\[\\]\\w$ "
-  COMMANDS=""
-  if [ $# -gt 0 ]; then
-    COMMANDS="$*; exit $?"
-  fi
-
-  echo "Entering LKFT environment..."
-  bash --rcfile <( \
-    cat "${HOME}/.bashrc" && \
-    echo "export PS1=\"${NPS1}\"" && \
-    echo "export MACHINE=\"${MACHINE}\"" && \
-    echo "export DISTRO=\"${DISTRO}\"" && \
-    echo "source setup-environment \"${BUILD_DIR}\"" && \
-    echo "${COMMANDS}" \
-  ) -i
-}
-
 function usage() {
   echo "Usage:"
   echo "  $0 bisection.conf"
