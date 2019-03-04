@@ -105,7 +105,6 @@ if [ $# -eq 1 -a -e "$1" ]; then
   git bisect old ${BISECTION_OLD}
   git bisect new ${BISECTION_NEW}
   git bisect run $(readlink -e $0) --all "${bisection_config}"
-  $(readlink -e $0) --all "${bisection_config}"
 
   echo "BAT Bisection: Done"
   trap '' INT TERM EXIT
