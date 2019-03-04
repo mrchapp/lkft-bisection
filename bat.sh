@@ -16,11 +16,13 @@ bat_get_section() {
 }
 
 function bat_old() {
+  trap '' EXIT
   echo "BISECTION OLD: This iteration (kernel rev ${SRCREV}) presents old behavior."
   exit 0
 }
 
 function bat_new() {
+  trap '' EXIT
   echo "BISECTION NEW: This iteration (kernel rev ${SRCREV}) presents new behavior."
   exit 1
 }
@@ -29,7 +31,7 @@ function bat_error() {
   echo "BISECTION ERROR: Script error, can't continue testing"
   exit 125
 }
-trap bat_error INT TERM
+trap bat_error INT TERM EXIT
 
 function bat_run_stage() {
   stage=$1
@@ -106,6 +108,7 @@ if [ $# -eq 1 -a -e "$1" ]; then
   $(readlink -e $0) --all "${bisection_config}"
 
   echo "BAT Bisection: Done"
+  trap '' INT TERM EXIT
   exit 0
 fi
 
