@@ -21,7 +21,7 @@ function bat_section_exists() {
 }
 
 function bat_git_status() {
-  if ! git status > /dev/null 2>&1; then
+  if ! git status >/dev/null 2>&1; then
     echo "ERROR: Not a Git repository, can't bisect."
     bat_error
   fi
