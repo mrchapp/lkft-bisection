@@ -45,18 +45,18 @@ function bat_git_status() {
 
 function bat_old() {
   trap '' EXIT
-  echo "BISECTION OLD: This iteration (kernel rev ${SRCREV}) presents old behavior."
+  echo "BAT BISECTION OLD: This iteration (kernel rev ${SRCREV}) presents old behavior."
   exit 0
 }
 
 function bat_new() {
   trap '' EXIT
-  echo "BISECTION NEW: This iteration (kernel rev ${SRCREV}) presents new behavior."
+  echo "BAT BISECTION NEW: This iteration (kernel rev ${SRCREV}) presents new behavior."
   exit 1
 }
 
 function bat_error() {
-  echo "BISECTION ERROR: Script error, can't continue testing"
+  echo "BAT BISECTION ERROR: Script error, can't continue testing"
   exit 125
 }
 trap bat_error INT TERM EXIT
