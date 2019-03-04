@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-bat_get_section() {
+function bat_get_section() {
   section=$1
   lin=$(grep -n "^\[${section}\]$" "${bisection_config}" | cut -d: -f1)
   if [ -n "${lin}" ]; then
@@ -13,6 +13,11 @@ bat_get_section() {
       tail -n +${linuno} "${bisection_config}"
     fi
   fi
+}
+
+function bat_section_exists() {
+  section=$1
+  grep -c "^\[${section}\]$" "${bisection_config}" | cut -d: -f1
 }
 
 function bat_git_status() {
@@ -58,6 +63,7 @@ trap bat_error INT TERM EXIT
 
 function bat_run_stage() {
   stage=$1
+  [ "$(bat_section_exists "${stage}")" = "0" ] && return
   echo "BAT Bisection: Configuration [${bisection_config}]; Stage: ${stage}"
   set -a
   source <(bat_get_section bat)
