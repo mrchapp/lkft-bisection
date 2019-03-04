@@ -15,6 +15,29 @@ bat_get_section() {
   fi
 }
 
+function bat_git_status() {
+  if ! git status > /dev/null 2>&1; then
+    echo "ERROR: Not a Git repository, can't bisect."
+    bat_error
+  fi
+
+  SRCREV=$(git rev-parse HEAD)
+  if [ -z "${SRCREV}" ]; then
+    echo "ERROR: Could not determine Git revision"
+    bat_error
+  fi
+
+  export SRCREV
+  export SHORT_SRCREV=${SRCREV:0:10}
+
+  num_steps=$(git bisect log | grep -c -e '^git bisect old' -e '^git bisect new')
+  # 1 for initial old, 1 for initial new; from there, first step (or #1)
+  iter=$((num_steps - 1))
+  echo
+  echo "=============================================================="
+  echo "BAT Iteration #${iter}: ${SRCREV}"
+}
+
 function bat_old() {
   trap '' EXIT
   echo "BISECTION OLD: This iteration (kernel rev ${SRCREV}) presents old behavior."
@@ -129,18 +152,7 @@ if [ "${stages_to_run[0]}" = "all" ]; then
   fi
 fi
 
-if ! git status > /dev/null 2>&1; then
-  echo "ERROR: Not a Git repository, can't bisect."
-  bat_error
-fi
-SRCREV=$(git rev-parse HEAD)
-if [ -z "${SRCREV}" ]; then
-  echo "ERROR: Could not determine Git revision"
-  bat_error
-fi
-export SRCREV
-export SHORT_SRCREV=${SRCREV:0:10}
-
+bat_git_status
 
 for st in ${stages_to_run[@]}; do
   bat_run_stage ${st}
