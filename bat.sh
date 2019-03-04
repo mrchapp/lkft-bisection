@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-function bat_get_section() {
+bat_get_section() {
   section=$1
   lin=$(grep -n "^\[${section}\]$" "${bisection_config}" | cut -d: -f1)
   if [ -n "${lin}" ]; then
@@ -15,12 +15,12 @@ function bat_get_section() {
   fi
 }
 
-function bat_section_exists() {
+bat_section_exists() {
   section=$1
   grep -c "^\[${section}\]$" "${bisection_config}" | cut -d: -f1
 }
 
-function bat_git_status() {
+bat_git_status() {
   if ! git status >/dev/null 2>&1; then
     echo "ERROR: Not a Git repository, can't bisect."
     bat_error
@@ -32,8 +32,9 @@ function bat_git_status() {
     bat_error
   fi
 
+  SHORT_SRCREV=$(echo "${SRCREV}" | cut -c1-10)
   export SRCREV
-  export SHORT_SRCREV=${SRCREV:0:10}
+  export SHORT_SRCREV
 
   num_steps=$(git bisect log | grep -c -e '^git bisect old' -e '^git bisect new')
   # 1 for initial old, 1 for initial new; from there, first step (or #1)
@@ -43,23 +44,23 @@ function bat_git_status() {
   echo "BAT Iteration #${iter}: ${SRCREV}"
 }
 
-function bat_old() {
+bat_old() {
   trap - EXIT
   echo "BAT BISECTION OLD: This iteration (kernel rev ${SRCREV}) presents old behavior."
   exit 0
 }
 
-function bat_new() {
+bat_new() {
   trap - EXIT
   echo "BAT BISECTION NEW: This iteration (kernel rev ${SRCREV}) presents new behavior."
   exit 1
 }
 
-function bat_error() {
+bat_error() {
   echo "BAT BISECTION ERROR: Script error, can't continue testing"
   exit 125
 }
-function bat_run_stage() {
+bat_run_stage() {
   stage=$1
   [ "$(bat_section_exists "${stage}")" = "0" ] && return
   echo "BAT Bisection: Configuration [${bisection_config}]; Stage: ${stage}"
@@ -70,7 +71,7 @@ function bat_run_stage() {
   eval "$(bat_get_section ${stage})"
 }
 
-function usage() {
+usage() {
   echo "Usage:"
   echo "  $0 bisection.conf"
   echo "will run the whole bisection. Or"
@@ -113,8 +114,9 @@ fi
 
 declare -a stages_to_run
 for arg in $@; do
-  if [ "${arg:0:2}" = "--" ]; then
-    stage="${arg:2}"
+  slice=$(echo "${arg}" | cut -c1-2)
+  if [ "${slice}" = "--" ]; then
+    stage=$(echo ${arg} | cut -c3-)
     stages_to_run+=(${stage})
   else
     bisection_config="${arg}"
