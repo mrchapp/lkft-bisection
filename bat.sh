@@ -21,7 +21,7 @@ bat_section_exists() {
 }
 
 bat_git_status() {
-  if ! git status >/dev/null 2>&1; then
+  if ! git status > /dev/null 2>&1; then
     echo "ERROR: Not a Git repository, can't bisect."
     bat_error
   fi
@@ -60,6 +60,7 @@ bat_error() {
   echo "BAT BISECTION ERROR: Script error, can't continue testing"
   exit 125
 }
+
 bat_run_stage() {
   stage=$1
   [ "$(bat_section_exists "${stage}")" = "0" ] && return
