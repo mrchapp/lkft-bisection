@@ -118,11 +118,11 @@ if [ $# -eq 1 ] && [ -e "$1" ]; then
       exit 1
     fi
   fi
-  echo "BAT Bisection: OLD: [${BISECTION_OLD}]"
-  echo "BAT Bisection: NEW: [${BISECTION_NEW}]"
+  echo "BAT Bisection: OLD: [${BAT_BISECTION_OLD}]"
+  echo "BAT Bisection: NEW: [${BAT_BISECTION_NEW}]"
   git -C "${BAT_GIT_DIR}" bisect start
-  git -C "${BAT_GIT_DIR}" bisect old "${BISECTION_OLD}"
-  git -C "${BAT_GIT_DIR}" bisect new "${BISECTION_NEW}"
+  git -C "${BAT_GIT_DIR}" bisect old "${BAT_BISECTION_OLD}"
+  git -C "${BAT_GIT_DIR}" bisect new "${BAT_BISECTION_NEW}"
   git -C "${BAT_GIT_DIR}" bisect run "$(readlink -e "$0")" --all "${bisection_config}"
 
   echo "BAT Bisection: Done"
