@@ -33,7 +33,7 @@ bat_git_status() {
   fi
 
   export BAT_KERNEL_SHA
-  export BAT_KERNEL_SHA_SHORT=${BAT_KERNEL_SHA:0:10}
+  export BAT_KERNEL_SHA_SHORT=${BAT_KERNEL_SHA:0:12}
 
   num_steps=$(git -C "${GIT_DIR}" bisect log | grep -c -e '^git bisect old' -e '^git bisect new' ||:)
   if [ -n "${num_steps}" ]; then
