@@ -1,0 +1,13 @@
+image:
+  name: lkft/lkft-ci:0.1.0
+
+stages:
+  - test
+
+test:
+  stage: test
+  script:
+    - shfmt -d -ci -sr -i 2 -kp *.sh
+    - shellcheck *.sh
+  only:
+    - merge_requests
