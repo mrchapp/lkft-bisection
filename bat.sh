@@ -67,10 +67,11 @@ bat_run_stage() {
   [ "$(bat_section_exists "${stage}")" = "0" ] && return
   echo "BAT Bisection: Configuration [${bisection_config}]; Stage: ${stage}"
   set -a
+  # shellcheck disable=SC1090
   source <(bat_get_section bat)
   set +a
   # FIXME: Trap exit status
-  eval "$(bat_get_section ${stage})"
+  eval "$(bat_get_section "${stage}")"
 }
 
 usage() {
@@ -96,10 +97,11 @@ BAT_DEFAULT_STAGES=(build publish test discriminator)
 # Trap unexpected exits
 trap bat_error INT TERM EXIT
 
-if [ $# -eq 1 -a -e "$1" ]; then
+if [ $# -eq 1 ] && [ -e "$1" ]; then
   # Managed mode
-  export bisection_config=$(readlink -e $1)
+  bisection_config="$(readlink -e "$1")"
   echo "BAT Bisection: Configuration [${bisection_config}]"
+  export bisection_config
   # Read bisection parameters
   eval "$(bat_get_section bat)"
   if [ ! -v GIT_DIR ]; then
@@ -118,9 +120,9 @@ if [ $# -eq 1 -a -e "$1" ]; then
   echo "BAT Bisection: OLD: [${BISECTION_OLD}]"
   echo "BAT Bisection: NEW: [${BISECTION_NEW}]"
   git -C "${GIT_DIR}" bisect start
-  git -C "${GIT_DIR}" bisect old ${BISECTION_OLD}
-  git -C "${GIT_DIR}" bisect new ${BISECTION_NEW}
-  git -C "${GIT_DIR}" bisect run $(readlink -e $0) --all "${bisection_config}"
+  git -C "${GIT_DIR}" bisect old "${BISECTION_OLD}"
+  git -C "${GIT_DIR}" bisect new "${BISECTION_NEW}"
+  git -C "${GIT_DIR}" bisect run "$(readlink -e "$0")" --all "${bisection_config}"
 
   echo "BAT Bisection: Done"
   trap - INT TERM EXIT
@@ -128,10 +130,10 @@ if [ $# -eq 1 -a -e "$1" ]; then
 fi
 
 declare -a stages_to_run
-for arg in $@; do
+for arg in "$@"; do
   if [ "${arg:0:2}" = "--" ]; then
     stage="${arg:2}"
-    stages_to_run+=(${stage})
+    stages_to_run+=("${stage}")
   else
     bisection_config="${arg}"
   fi
@@ -147,6 +149,6 @@ fi
 
 bat_git_status
 
-for st in ${stages_to_run[@]}; do
-  bat_run_stage ${st}
+for st in "${stages_to_run[@]}"; do
+  bat_run_stage "${st}"
 done
