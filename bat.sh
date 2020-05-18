@@ -90,6 +90,7 @@ usage() {
   exit 0
 }
 
+# If a stage is not defined, it won't be called
 BAT_DEFAULT_STAGES=(build publish test discriminator)
 
 [ $# -eq 0 ] && usage
@@ -107,7 +108,7 @@ if [ $# -eq 1 ] && [ -e "$1" ]; then
   if [ ! -v GIT_DIR ]; then
     export GIT_DIR="."
   fi
-  if [ "${VERIFY}" = "true" ]; then
+  if [ "${BAT_VERIFY}" = "true" ]; then
     $0 --all "${bisection_config}"
     ret=$?
     if [ $ret -eq 0 ]; then
