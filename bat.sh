@@ -26,14 +26,14 @@ bat_git_status() {
     bat_error
   fi
 
-  SRCREV=$(git -C "${GIT_DIR}" rev-parse HEAD)
-  if [ -z "${SRCREV}" ]; then
+  BAT_KERNEL_SHA=$(git -C "${GIT_DIR}" rev-parse HEAD)
+  if [ -z "${BAT_KERNEL_SHA}" ]; then
     echo "ERROR: Could not determine Git revision"
     bat_error
   fi
 
-  export SRCREV
-  export SHORT_SRCREV=${SRCREV:0:10}
+  export BAT_KERNEL_SHA
+  export BAT_KERNEL_SHA_SHORT=${BAT_KERNEL_SHA:0:10}
 
   num_steps=$(git -C "${GIT_DIR}" bisect log | grep -c -e '^git bisect old' -e '^git bisect new' ||:)
   if [ -n "${num_steps}" ]; then
@@ -41,19 +41,19 @@ bat_git_status() {
     iter=$((num_steps - 1))
     echo
     echo "=============================================================="
-    echo "BAT Iteration #${iter}: ${SRCREV}"
+    echo "BAT Iteration #${iter}: ${BAT_KERNEL_SHA}"
   fi
 }
 
 bat_old() {
   trap - EXIT
-  echo "BAT BISECTION OLD: This iteration (kernel rev ${SRCREV}) presents old behavior."
+  echo "BAT BISECTION OLD: This iteration (kernel rev ${BAT_KERNEL_SHA}) presents old behavior."
   exit 0
 }
 
 bat_new() {
   trap - EXIT
-  echo "BAT BISECTION NEW: This iteration (kernel rev ${SRCREV}) presents new behavior."
+  echo "BAT BISECTION NEW: This iteration (kernel rev ${BAT_KERNEL_SHA}) presents new behavior."
   exit 1
 }
 
