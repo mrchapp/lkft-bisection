@@ -35,7 +35,7 @@ bat_git_status() {
   export BAT_KERNEL_SHA
   export BAT_KERNEL_SHA_SHORT=${BAT_KERNEL_SHA:0:12}
 
-  num_steps=$(git -C "${GIT_DIR}" bisect log | grep -c -e '^git bisect old' -e '^git bisect new' ||:)
+  num_steps=$(git -C "${GIT_DIR}" bisect log | grep -c -e '^git bisect old' -e '^git bisect new' || :)
   if [ -n "${num_steps}" ]; then
     # 1 for initial old, 1 for initial new; from there, first step (or #1)
     iter=$((num_steps - 1))
