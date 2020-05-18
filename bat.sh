@@ -32,16 +32,17 @@ bat_git_status() {
     bat_error
   fi
 
-  SHORT_SRCREV=$(echo "${SRCREV}" | cut -c1-10)
   export SRCREV
-  export SHORT_SRCREV
+  export SHORT_SRCREV=${SRCREV:0:10}
 
-  num_steps=$(git -C "${GIT_DIR}" bisect log | grep -c -e '^git bisect old' -e '^git bisect new')
-  # 1 for initial old, 1 for initial new; from there, first step (or #1)
-  iter=$((num_steps - 1))
-  echo
-  echo "=============================================================="
-  echo "BAT Iteration #${iter}: ${SRCREV}"
+  num_steps=$(git -C "${GIT_DIR}" bisect log | grep -c -e '^git bisect old' -e '^git bisect new' ||:)
+  if [ -n "${num_steps}" ]; then
+    # 1 for initial old, 1 for initial new; from there, first step (or #1)
+    iter=$((num_steps - 1))
+    echo
+    echo "=============================================================="
+    echo "BAT Iteration #${iter}: ${SRCREV}"
+  fi
 }
 
 bat_old() {
@@ -128,9 +129,8 @@ fi
 
 declare -a stages_to_run
 for arg in $@; do
-  slice=$(echo "${arg}" | cut -c1-2)
-  if [ "${slice}" = "--" ]; then
-    stage=$(echo ${arg} | cut -c3-)
+  if [ "${arg:0:2}" = "--" ]; then
+    stage="${arg:2}"
     stages_to_run+=(${stage})
   else
     bisection_config="${arg}"
