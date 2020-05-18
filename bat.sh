@@ -21,12 +21,12 @@ bat_section_exists() {
 }
 
 bat_git_status() {
-  if ! git -C "${GIT_DIR}" status > /dev/null 2>&1; then
+  if ! git -C "${BAT_GIT_DIR}" status > /dev/null 2>&1; then
     echo "ERROR: Not a Git repository, can't bisect."
     bat_error
   fi
 
-  BAT_KERNEL_SHA=$(git -C "${GIT_DIR}" rev-parse HEAD)
+  BAT_KERNEL_SHA=$(git -C "${BAT_GIT_DIR}" rev-parse HEAD)
   if [ -z "${BAT_KERNEL_SHA}" ]; then
     echo "ERROR: Could not determine Git revision"
     bat_error
@@ -35,7 +35,7 @@ bat_git_status() {
   export BAT_KERNEL_SHA
   export BAT_KERNEL_SHA_SHORT=${BAT_KERNEL_SHA:0:12}
 
-  num_steps=$(git -C "${GIT_DIR}" bisect log | grep -c -e '^git bisect old' -e '^git bisect new' || :)
+  num_steps=$(git -C "${BAT_GIT_DIR}" bisect log | grep -c -e '^git bisect old' -e '^git bisect new' || :)
   if [ -n "${num_steps}" ]; then
     # 1 for initial old, 1 for initial new; from there, first step (or #1)
     iter=$((num_steps - 1))
@@ -105,8 +105,8 @@ if [ $# -eq 1 ] && [ -e "$1" ]; then
   export bisection_config
   # Read bisection parameters
   eval "$(bat_get_section bat)"
-  if [ ! -v GIT_DIR ]; then
-    export GIT_DIR="."
+  if [ ! -v BAT_GIT_DIR ]; then
+    export BAT_GIT_DIR="."
   fi
   if [ "${BAT_VERIFY}" = "true" ]; then
     $0 --all "${bisection_config}"
@@ -120,10 +120,10 @@ if [ $# -eq 1 ] && [ -e "$1" ]; then
   fi
   echo "BAT Bisection: OLD: [${BISECTION_OLD}]"
   echo "BAT Bisection: NEW: [${BISECTION_NEW}]"
-  git -C "${GIT_DIR}" bisect start
-  git -C "${GIT_DIR}" bisect old "${BISECTION_OLD}"
-  git -C "${GIT_DIR}" bisect new "${BISECTION_NEW}"
-  git -C "${GIT_DIR}" bisect run "$(readlink -e "$0")" --all "${bisection_config}"
+  git -C "${BAT_GIT_DIR}" bisect start
+  git -C "${BAT_GIT_DIR}" bisect old "${BISECTION_OLD}"
+  git -C "${BAT_GIT_DIR}" bisect new "${BISECTION_NEW}"
+  git -C "${BAT_GIT_DIR}" bisect run "$(readlink -e "$0")" --all "${bisection_config}"
 
   echo "BAT Bisection: Done"
   trap - INT TERM EXIT
