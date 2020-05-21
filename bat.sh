@@ -104,7 +104,9 @@ if [ $# -eq 1 ] && [ -e "$1" ]; then
   echo "BAT Bisection: Configuration [${bisection_config}]"
   export bisection_config
   # Read bisection parameters
+  set -a
   eval "$(bat_get_section bat)"
+  set +a
   if [ ! -v BAT_GIT_DIR ]; then
     export BAT_GIT_DIR="."
   fi
@@ -118,6 +120,7 @@ if [ $# -eq 1 ] && [ -e "$1" ]; then
       exit 1
     fi
   fi
+
   echo "BAT Bisection: OLD: [${BAT_BISECTION_OLD}]"
   echo "BAT Bisection: NEW: [${BAT_BISECTION_NEW}]"
   git -C "${BAT_GIT_DIR}" bisect start
